@@ -25,8 +25,8 @@ const EventEmitter = require('events').EventEmitter;
  *   class.
  */
 class ServiceNowAdapter extends EventEmitter {
-
-  /**
+   
+   /**
    * Here we document the ServiceNowAdapter class' callback. It must follow IAP's
    *   data-first convention.
    * @callback ServiceNowAdapter~requestCallback
@@ -67,7 +67,9 @@ class ServiceNowAdapter extends EventEmitter {
       serviceNowTable: this.props.serviceNowTable
     });
   }
+  
 
+ 
   /**
    * @memberof ServiceNowAdapter
    * @method connect
@@ -82,32 +84,49 @@ class ServiceNowAdapter extends EventEmitter {
     // in its own method.
     this.healthcheck();
   }
-
-  /**
-   * @memberof ServiceNowAdapter
-   * @method healthcheck
-   * @summary Check ServiceNow Health
-   * @description Verifies external system is available and healthy.
-   *   Calls method emitOnline if external system is available.
-   *
-   * @param {ServiceNowAdapter~requestCallback} [callback] - The optional callback
-   *   that handles the response.
-   */
-  healthcheck(callback) {
+/**
+ * @memberof ServiceNowAdapter
+ * @method healthcheck
+ * @summary Check ServiceNow Health
+ * @description Verifies external system is available and healthy.
+ *   Calls method emitOnline if external system is available.
+ *
+ * @param {ServiceNowAdapter~requestCallback} [callback] - The optional callback
+ *   that handles the response.
+ */
+healthcheck(callback) {
    this.getRecord((_response, _error ) => {
 
     var displayResponse = _response
     var displayError = _error      
     //console.log(`\nResponse returned from GET request in HealthCheck:\n${JSON.stringify(displayResponse)}`)
-      if(_response.body.includes('Instance Hibernating page') && _response.body.includes('<html>') && _response.statusCode === 200) {
+    /**
+    * For this lab, complete the if else conditional
+    * statements that check if an error exists
+    * or the instance was hibernating. You must write
+    * the blocks for each branch.
+    */
+   if(_response.body.includes('Instance Hibernating page') && _response.body.includes('<html>') && _response.statusCode === 200) {
       this.emitStatus("OFFLINE");
        log.error('ServiceNow: Instance is hibernating.' + this.id);
    }
    if (_error) {
+     /**
+      * Write this block.
+      * If an error was returned, we need to emit OFFLINE.
+      * Log the returned error using IAP's global log object
+      * at an error severity. In the log message, record
+      * this.id so an administrator will know which ServiceNow
+      * adapter instance wrote the log message in case more
+      * than one instance is configured.
+      * If an optional IAP callback function was passed to
+      * healthcheck(), execute it passing the error seen as an argument
+      * for the callback's errorMessage parameter.
+      */
       this.emitStatus("OFFLINE");
       log.error( _error + this.id);
    } else {
-        this.emitStatus("ONLINE");
+     this.emitStatus("ONLINE");
         log.debug('ServiceNow: Instance is available.' + this.id);
    }
  });
@@ -115,6 +134,18 @@ class ServiceNowAdapter extends EventEmitter {
  emitOffline() {
     this.emitStatus('OFFLINE');
     log.warn('ServiceNow: Instance is unavailable.');
+  }
+
+  /**
+   * @memberof ServiceNowAdapter
+   * @method emitOnline
+   * @summary Emit ONLINE
+   * @description Emits an ONLINE event to IAP indicating external
+   *   system is available.
+   */
+  emitOnline() {
+    this.emitStatus('ONLINE');
+    log.info('ServiceNow: Instance is available.');
   }
 
   /**
@@ -140,7 +171,8 @@ class ServiceNowAdapter extends EventEmitter {
    *   handles the response.
    */
   getRecord(callback) {
-       this.connector.get((_processedData, _processedError) => { callback(_processedData, _processedError) });
+    
+  this.connector.get((_processedData, _processedError) => { callback(_processedData, _processedError) });
   
   }
 
