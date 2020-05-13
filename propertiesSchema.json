@@ -22,9 +22,9 @@
         },
         "password": {
           "type": "string",
-          "default": "Escort89",
+          "default": "$ENCa6f984255661a91c96db49409dda2e1d8a85268cafd14d9c9",
           "examples": [
-            "Escort89"
+            "$ENCa6f984255661a91c96db49409dda2e1d8a85268cafd14d9c"
           ]
         }
       },
