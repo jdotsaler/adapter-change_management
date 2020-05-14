@@ -95,19 +95,38 @@ class ServiceNowAdapter extends EventEmitter {
  *   that handles the response.
  */
 healthcheck(callback) {
-   
-   this.getRecord((_processedData, _processedError, _response ) => {
-    console.log(`\nProcessed Response returned from Get in Health request:\n${JSON.stringify(_processedData)}`);
+   this.getRecord((_response, _error ) => {
 
-      if(_response.body.includes('Instance Hibernating page') && _response.body.includes('<html>') && _response.statusCode === 200) {
+    var displayResponse = _response
+    var displayError = _error      
+    //console.log(`\nResponse returned from GET request in HealthCheck:\n${JSON.stringify(displayResponse)}`)
+    /**
+    * For this lab, complete the if else conditional
+    * statements that check if an error exists
+    * or the instance was hibernating. You must write
+    * the blocks for each branch.
+    */
+   if(_response.body.includes('Instance Hibernating page') && _response.body.includes('<html>') && _response.statusCode === 200) {
       this.emitStatus("OFFLINE");
        log.error('ServiceNow: Instance is hibernating.' + this.id);
    }
-   if (_processedError) {
+   if (_error) {
+     /**
+      * Write this block.
+      * If an error was returned, we need to emit OFFLINE.
+      * Log the returned error using IAP's global log object
+      * at an error severity. In the log message, record
+      * this.id so an administrator will know which ServiceNow
+      * adapter instance wrote the log message in case more
+      * than one instance is configured.
+      * If an optional IAP callback function was passed to
+      * healthcheck(), execute it passing the error seen as an argument
+      * for the callback's errorMessage parameter.
+      */
       this.emitStatus("OFFLINE");
-      log.error( _processedError + this.id);
+      log.error( _error + this.id);
    } else {
-        this.emitStatus("ONLINE");
+     this.emitStatus("ONLINE");
         log.debug('ServiceNow: Instance is available.' + this.id);
    }
  });
@@ -151,32 +170,13 @@ healthcheck(callback) {
    * @param {ServiceNowAdapter~requestCallback} callback - The callback that
    *   handles the response.
    */
-   getRecord(callback) {
-    var newJSON = [];
-    var arrayOfArrays = [];
-    this.connector.get((_processedData, _processedError) => { 
-        var detectObject = typeof _processedData;
-        var _response = _processedData;
-        if(_processedData.body.includes('result')) {
-        var recordCount = 1;
-        for( var i = 0; i < recordCount; i++)    {
-        let jsonData = JSON.parse(_processedData.body);
-        var number = jsonData.result[i].number;
-        var active = jsonData.result[i].active;
-        var priority = jsonData.result[i].priority;
-        var description = jsonData.result[i].description;
-        var workStart = jsonData.result[i].work_start;
-        var workEnd = jsonData.result[i].work_end;
-        var sys_id = jsonData.result[i].sys_id;
-   newJSON = { "change_ticket_number" : number, "active" : active , "priority" : priority , "description" : description , "work_start" : workStart , "work_end" : workEnd , "change_ticket_key" : sys_id };
-   arrayOfArrays[i] = newJSON
-    }
-    _processedData = arrayOfArrays;
-    }
-    callback(_processedData, _processedError,_response);
-    });
+  getRecord(callback) {
+    
+  this.connector.get((_processedData, _processedError) => { callback(_processedData, _processedError) });
+  
   }
-   /**
+
+  /**
    * @memberof ServiceNowAdapter
    * @method postRecord
    * @summary Create ServiceNow Record
@@ -185,36 +185,14 @@ healthcheck(callback) {
    * @param {ServiceNowAdapter~requestCallback} callback - The callback that
    *   handles the response.node
    */
- postRecord(callback) {
-    var newJSON = [];
-  
-  this.connector.post((_processedData, _processedError) => { 
-   var detectObject = typeof _processedData;
-    var _response = _processedData;
-    if(_processedData.body.includes('result')) {
-    let jsonData = JSON.parse(_processedData.body);
-    var number = jsonData.result.number;
-    var active = jsonData.result.active;
-    var priority = jsonData.result.priority;
-    var description = jsonData.result.description;
-    var workStart = jsonData.result.work_start;
-    var workEnd = jsonData.result.work_end;
-    var sys_id = jsonData.result.sys_id;
-   newJSON = { "change_ticket_number" : number, "active" : active , "priority" : priority , "description" : description , "work_start" : workStart , "work_end" : workEnd , "change_ticket_key" : sys_id };
-   _processedData = newJSON;
+  postRecord(callback) {
+        this.connector.post((_processedData, _processedError) => {
+     if (_processedError) {
+      console.error(`\nError returned from POST request:\n${JSON.stringify(_processedError)}`);
     }
-    callback(_processedData, _processedError, _response);
-    });
+    console.log(`\nResponse returned from POST request:\n${JSON.stringify(_processedData)}`)
+  });
   }
 }
-/**
-   * @memberof ServiceNowAdapter
-   * @method postRecord
-   * @summary Create ServiceNow Record
-   * @description Creates a record in ServiceNow.
-   *
-   * @param {ServiceNowAdapter~requestCallback} callback - The callback that
-   *   handles the response.node
-   */
-  
+
 module.exports = ServiceNowAdapter;
